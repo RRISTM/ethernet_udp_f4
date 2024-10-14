@@ -22,7 +22,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "lwip/pbuf.h"
+#include "lwip/udp.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,7 +44,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint32_t connected=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,6 +97,37 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    struct udp_pcb *upcb;
+    err_t err;
+    ip_addr_t DestIPaddr;
+    MX_LWIP_Process();
+    if(connected){
+    	connected=0;
+      /* Create a new UDP control block  */
+      upcb = udp_new();
+      if(upcb!=NULL){
+        /*assign destination IP address */
+        IP4_ADDR( &DestIPaddr, 192, 168, 1, 1 );
+        /* configure destination IP address and port */
+        err= udp_connect(upcb, &DestIPaddr, 3999);
+
+        if (err == ERR_OK){
+        	 u8_t   data[100]= {"Hello"};
+        	 struct pbuf *p;
+        	 /* allocate pbuf from pool*/
+        	 p = pbuf_alloc(PBUF_TRANSPORT,strlen((char*)data), PBUF_POOL); /* Set a receive callback for the upcb */
+        	if (p != NULL)
+        	{
+        		/* copy data to pbuf */
+            pbuf_take(p, (char*)data, strlen((char*)data));
+            udp_send(upcb, p);
+			    /* free pbuf */
+            pbuf_free(p);
+            udp_disconnect(upcb);
+        	}
+        }
+      }
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
