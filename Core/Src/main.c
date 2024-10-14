@@ -108,25 +108,30 @@ int main(void)
       if(upcb!=NULL){
         /*assign destination IP address */
         IP4_ADDR( &DestIPaddr, 192, 168, 1, 1 );
+
+        /* Using IP_ADDR_ANY allow the upcb to be used by any local interface */
+         err = udp_bind(upcb, IP_ADDR_ANY, 3999);
         /* configure destination IP address and port */
-        err= udp_connect(upcb, &DestIPaddr, 3999);
+        // err= udp_connect(upcb, &DestIPaddr, 3999);
 
         if (err == ERR_OK){
-        	 u8_t   data[100]= {"Hello"};
-        	 struct pbuf *p;
-        	 /* allocate pbuf from pool*/
-        	 p = pbuf_alloc(PBUF_TRANSPORT,strlen((char*)data), PBUF_POOL); /* Set a receive callback for the upcb */
-        	if (p != NULL)
-        	{
             /* Set a receive callback for the upcb */
-            udp_recv(upcb, udp_receive_callback, NULL);  
-        		/* copy data to pbuf */
-            pbuf_take(p, (char*)data, strlen((char*)data));
-            udp_send(upcb, p);
-			    /* free pbuf */
-            pbuf_free(p);
-            // udp_disconnect(upcb);
-        	}
+          udp_recv(upcb, udp_receive_callback, NULL);  
+        	//  u8_t   data[100]= {"Hello"};
+        	//  struct pbuf *p;
+        	//  /* allocate pbuf from pool*/
+        	//  p = pbuf_alloc(PBUF_TRANSPORT,strlen((char*)data), PBUF_POOL); /* Set a receive callback for the upcb */
+        	// if (p != NULL)
+        	// {
+          //   /* Set a receive callback for the upcb */
+          //   udp_recv(upcb, udp_receive_callback, NULL);  
+        	// 	/* copy data to pbuf */
+          //   pbuf_take(p, (char*)data, strlen((char*)data));
+          //   udp_send(upcb, p);
+			    // /* free pbuf */
+          //   pbuf_free(p);
+          //   // udp_disconnect(upcb);
+        	// }
         }
       }
     }
@@ -149,6 +154,11 @@ int main(void)
   */
 void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port){
   __NOP();
+  udp_connect(upcb, addr, port);
+    /* Tell the client that we have accepted it */
+  udp_send(upcb, p);
+   /* free the UDP connection, so we can accept new clients */
+  udp_disconnect(upcb);
     /* Free receive pbuf */
   pbuf_free(p);
 }
