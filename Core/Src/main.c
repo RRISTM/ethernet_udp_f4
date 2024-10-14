@@ -51,7 +51,7 @@ uint32_t connected=0;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
-
+void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -118,12 +118,14 @@ int main(void)
         	 p = pbuf_alloc(PBUF_TRANSPORT,strlen((char*)data), PBUF_POOL); /* Set a receive callback for the upcb */
         	if (p != NULL)
         	{
+            /* Set a receive callback for the upcb */
+            udp_recv(upcb, udp_receive_callback, NULL);  
         		/* copy data to pbuf */
             pbuf_take(p, (char*)data, strlen((char*)data));
             udp_send(upcb, p);
 			    /* free pbuf */
             pbuf_free(p);
-            udp_disconnect(upcb);
+            // udp_disconnect(upcb);
         	}
         }
       }
@@ -133,6 +135,22 @@ int main(void)
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
+}
+
+
+/**
+  * @brief This function is called when an UDP datagrm has been received on the port UDP_PORT.
+  * @param arg user supplied argument (udp_pcb.recv_arg)
+  * @param pcb the udp_pcb which received data
+  * @param p the packet buffer that was received
+  * @param addr the remote IP address from which the packet was received
+  * @param port the remote port from which the packet was received
+  * @retval None
+  */
+void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port){
+  __NOP();
+    /* Free receive pbuf */
+  pbuf_free(p);
 }
 
 /**
